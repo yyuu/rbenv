@@ -16,10 +16,22 @@
 set -e
 [ -n "$RBENV_DEBUG" ] && set -x
 
+rubypath=
 # Provide rbenv completions
-if [ "$1" = "--complete" ]; then
-  exec rbenv shims --short
-fi
+while true; do
+  case "$1" in
+  "--complete" )
+    exec rbenv shims --short
+    ;;
+  "--rubypath" )
+    rubypath=1
+    shift 1
+    ;;
+  * )
+    break
+    ;;
+  esac
+done
 
 RBENV_VERSION="$(rbenv-version-name)"
 RBENV_COMMAND="$1"
@@ -31,7 +43,6 @@ fi
 
 export RBENV_VERSION
 RBENV_COMMAND_PATH="$(rbenv-which "$RBENV_COMMAND")"
-RBENV_BIN_PATH="${RBENV_COMMAND_PATH%/*}"
 
 IFS=$'\n' scripts=(`rbenv-hooks exec`)
 for script in "${scripts[@]}"; do
@@ -39,7 +50,7 @@ for script in "${scripts[@]}"; do
 done
 
 shift 1
-if [ "$RBENV_VERSION" != "system" ]; then
-  export PATH="${RBENV_BIN_PATH}:${PATH}"
+if [ -n "$rubypath" ] && [ -z "$RUBYPATH" ]; then
+  export RUBYPATH="${PATH/${RBENV_ROOT}\/shims:/${RBENV_COMMAND_PATH%/*}:}"
 fi
 exec -a "$RBENV_COMMAND" "$RBENV_COMMAND_PATH" "$@"

@@ -65,6 +65,16 @@ SH
     args"
 }
 
+@test "doesn't mutate PATH" {
+  export RBENV_VERSION="2.0"
+  create_executable "ruby" "\
+    #!$BASH
+    echo \$PATH"
+
+  run rbenv-exec ruby
+  assert_success "$PATH"
+}
+
 @test "supports ruby -S <cmd>" {
   export RBENV_VERSION="2.0"
 
@@ -92,4 +102,13 @@ SH
   rbenv-rehash
   run ruby -S rake
   assert_success "hello rake"
+
+  # test that a command in PATH higher than rbenv's shims has precedence
+  mkdir -p "${HOME}/bin"
+  echo "#!/usr/bin/env ruby
+    echo override rake" > "${HOME}/bin/rake"
+  chmod +x "${HOME}/bin/rake"
+
+  PATH="${HOME}/bin:$PATH" run ruby -S rake
+  assert_success "override rake"
 }
