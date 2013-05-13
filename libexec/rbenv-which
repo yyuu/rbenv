@@ -48,6 +48,15 @@ remove_from_path() {
   echo "${result%:}"
 }
 
+lookup_from_path() {
+  local command_to_lookup="$1"
+  local original_path="${PATH}"
+  PATH="$(remove_from_path "${RBENV_ROOT}/shims")"
+  local result="$(command -v "$command_to_lookup" || true)"
+  PATH="${original_path}"
+  echo $result
+}
+
 RBENV_VERSION="$(rbenv-version-name)"
 RBENV_COMMAND="$1"
 
@@ -57,10 +66,13 @@ if [ -z "$RBENV_COMMAND" ]; then
 fi
 
 if [ "$RBENV_VERSION" = "system" ]; then
-  PATH="$(remove_from_path "${RBENV_ROOT}/shims")"
-  RBENV_COMMAND_PATH="$(command -v "$RBENV_COMMAND" || true)"
+  RBENV_COMMAND_PATH="$(lookup_from_path "$RBENV_COMMAND" || true)"
 else
   RBENV_COMMAND_PATH="${RBENV_ROOT}/versions/${RBENV_VERSION}/bin/${RBENV_COMMAND}"
+  # if the command is not installed in rbenv, look up it from default `$PATH`.
+  if [ ! -x "$RBENV_COMMAND_PATH" ]; then
+    RBENV_COMMAND_PATH="$(lookup_from_path "$RBENV_COMMAND" || true)"
+  fi
 fi
 
 OLDIFS="$IFS"
