@@ -17,7 +17,7 @@ set -e
 
 command_path() {
   local command="$1"
-  command -v rbenv-"$command" || command -v rbenv-sh-"$command" || true
+  command -v rbenv-"$command" || command -v rbenv-sh-"$command" || command -v rbenv-fish-"$command" || true
 }
 
 extract_initial_comment_block() {
