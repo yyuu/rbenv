@@ -106,9 +106,9 @@ if [ -z "$no_rehash" ]; then
   echo 'rbenv rehash 2>/dev/null'
 fi
 
+commands=(`rbenv-commands --sh`)
 case "$shell" in
 fish )
-  commands=(`rbenv-commands --fish`)
   cat <<EOS
 ;function rbenv;
   set -e command;
@@ -119,7 +119,7 @@ fish )
 
   switch "\$command";
     case ${commands[*]};
-      eval (rbenv "fish-\$command" \$argv);
+      eval (rbenv "sh-\$command" \$argv);
     case '*';
       command rbenv "\$command" \$argv;
   end;
@@ -127,7 +127,6 @@ end;
 EOS
   ;;
 * )
-  commands=(`rbenv-commands --sh`)
   IFS="|"
   cat <<EOS
 rbenv() {
